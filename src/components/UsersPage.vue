@@ -132,6 +132,17 @@
         />
       </v-container>
     </v-dialog>
+    <v-dialog 
+      v-if="deleteModal"
+      v-model="deleteModal.show"
+      max-width="500px"
+    >
+      <ConfirmationModal
+        :message="deleteModal.message"
+        @confirm="deleteUser"
+        @close="deleteModal.show = false"
+      />
+    </v-dialog>
   </v-container>
 </template>
 
@@ -141,13 +152,15 @@
   import UserForm from './UserForm.vue';
   import SuccessModal from './modals/SuccessModal.vue';
   import ErrorModal from './modals/ErrorModal.vue';
+  import ConfirmationModal from './modals/ConfirmationModal.vue';
 
   export default {
     name: 'UsersPage',
     components: {
       UserForm,
       SuccessModal,
-      ErrorModal
+      ErrorModal,
+      ConfirmationModal
     },
 
     data: () => ({
@@ -282,7 +295,11 @@
         message: ''
       },
       editModal: false,
-      selectedUser: {}
+      selectedUser: {},
+      deleteModal: {
+        show: false,
+        message: ''
+      }
     }),
     mounted() {
       this.getUsers();
@@ -384,6 +401,25 @@
         this.editModal = false;
         this.errorModal.show = true;
         this.errorModal.message = 'Failed to edit user';
+      },
+      deleteItem(user) {
+        this.selectedUser = user;
+        this.deleteModal.show = true;
+        this.deleteModal.message = 'Are you sure want to delete ' + user.name + '?';
+      },
+      deleteUser() {
+        axios.delete(API_URL + '/user/' + this.selectedUser.id)
+          .then(() => {
+            this.deleteModal.show = false;
+            this.successModal.show = true;
+            this.successModal.message = 'User has been deleted successfully';
+            this.getUsers();
+          })
+          .catch(() => {
+            this.deleteModal.show = false;
+            this.errorModal.show = true;
+            this.errorModal.message = 'Failed to delete user';
+          })
       },
     }
   }
