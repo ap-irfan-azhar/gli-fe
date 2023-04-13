@@ -2,7 +2,7 @@
   <v-container>
     <H1> List of Users </H1>
     <v-row>
-      <v-col cols="3" sm="6" md="4">
+      <v-col cols="3">
         <v-text-field
           v-model="search"
           append-icon="mdi-magnify"
@@ -11,21 +11,21 @@
           hide-details
         ></v-text-field>
       </v-col>
-      <v-col cols="3" sm="6" md="4">
+      <v-col cols="2">
         <v-select
           v-model="sortBy"
           :items="sortByList"
           label="Sort by"
         ></v-select>
       </v-col>
-      <v-col cols="3" sm="6" md="4">
+      <v-col cols="1">
         <v-select
           v-model="sortDirection"
           :items="sortDirectionList"
           label="Sort Direction"
         ></v-select>
       </v-col>
-      <v-col cols="1">
+      <v-col cols="2">
         <v-btn
           color="primary"
           class="mr-4"
@@ -33,6 +33,29 @@
         >
           Clear Filter
         </v-btn>
+      </v-col>
+      <v-col cols="2">
+        <v-dialog v-model="dialog" max-width="500px">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="success"
+              class="mr-4"
+              v-bind="attrs"
+              v-on="on"
+            >
+              Add User
+            </v-btn>
+          </template>
+          <v-container 
+            style="background-color: white !important;"
+          >
+            <UserForm
+              :isEdit="false"
+              @success="onSuccess"
+              @error="onError"
+            />
+          </v-container>
+        </v-dialog>
       </v-col>
     </v-row>
     <v-data-table
@@ -59,14 +82,41 @@
         />
       </v-col>
     </v-row>
+    <v-dialog 
+      v-model="successModal.show"
+      max-width="500px"
+    >
+      <SuccessModal
+        message="User added successfully"
+        @close="successModal.show = false"        
+      />
+    </v-dialog>
+    <v-dialog 
+      v-model="errorModal.show"
+      max-width="500px"
+    >
+      <ErrorModal
+        message="Something went wrong"
+        @close="errorModal.show = false"
+      />
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
   import axios from 'axios';
   import { API_URL } from '../utils/const'
+  import UserForm from './UserForm.vue';
+  import SuccessModal from './modals/SuccessModal.vue';
+  import ErrorModal from './modals/ErrorModal.vue';
+
   export default {
     name: 'UsersPage',
+    components: {
+      UserForm,
+      SuccessModal,
+      ErrorModal
+    },
 
     data: () => ({
       users: [
@@ -190,6 +240,15 @@
       page: 1,
       rowsPerPage: 10,
       totalPage: 0,
+      dialog: false,
+      successModal: {
+        show: false,
+        message: ''
+      },
+      errorModal: {
+        show: false,
+        message: ''
+      }
     }),
     mounted() {
       this.getUsers();
@@ -224,7 +283,7 @@
               return {
                 ...user,
                 dob: this.formatDate(user.dob),
-                no: response.data.content.indexOf(user) + 1
+                no: response.data.content.indexOf(user) + 1 + (this.page - 1) * this.rowsPerPage
               }
             })
             this.totalPage = response.data.totalPages;
@@ -251,7 +310,16 @@
           day = '0' + day;
 
         return [day, month, year].join('-');
-      }
+      },
+      onSuccess() {
+        this.dialog = false
+        this.successModal.show = true;
+        this.getUsers();
+      },
+      onError() {
+        this.dialog = false
+        this.errorModal.show = true;
+      },
     }
   }
 </script>
