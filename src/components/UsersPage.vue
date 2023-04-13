@@ -2,7 +2,7 @@
   <v-container>
     <H1> List of Users </H1>
     <v-row>
-      <v-col cols="3">
+      <v-col cols="2">
         <v-text-field
           v-model="search"
           append-icon="mdi-magnify"
@@ -18,7 +18,7 @@
           label="Sort by"
         ></v-select>
       </v-col>
-      <v-col cols="1">
+      <v-col cols="2">
         <v-select
           v-model="sortDirection"
           :items="sortDirectionList"
@@ -56,6 +56,15 @@
             />
           </v-container>
         </v-dialog>
+      </v-col>
+      <v-col cols="2">
+        <v-btn
+          color="warning"
+          class="mr-4"
+          @click="roleModal = true"
+        >
+          add Role
+        </v-btn>
       </v-col>
     </v-row>
     <v-data-table
@@ -143,6 +152,17 @@
         @close="deleteModal.show = false"
       />
     </v-dialog>
+    <v-dialog 
+      v-if="roleModal"
+      v-model="roleModal"
+      max-width="500px"
+    >
+      <RoleForm
+        @close="roleModal = false"
+        @success="onSuccessRole"
+        @error="onErrorRole"
+      />
+    </v-dialog>
   </v-container>
 </template>
 
@@ -153,6 +173,7 @@
   import SuccessModal from './modals/SuccessModal.vue';
   import ErrorModal from './modals/ErrorModal.vue';
   import ConfirmationModal from './modals/ConfirmationModal.vue';
+  import RoleForm from './RoleForm.vue';
 
   export default {
     name: 'UsersPage',
@@ -160,7 +181,8 @@
       UserForm,
       SuccessModal,
       ErrorModal,
-      ConfirmationModal
+      ConfirmationModal,
+      RoleForm
     },
 
     data: () => ({
@@ -299,7 +321,8 @@
       deleteModal: {
         show: false,
         message: ''
-      }
+      },
+      roleModal: false,
     }),
     mounted() {
       this.getUsers();
@@ -421,6 +444,20 @@
             this.errorModal.message = 'Failed to delete user';
           })
       },
-    }
+      showAddRole() {
+        this.roleModal = true;
+      },
+      onSuccessRole() {
+        this.roleModal = false;
+        this.successModal.show = true;
+        this.successModal.message = 'Role has been add successfully';
+        this.getUsers();
+      },
+      onErrorRole() {
+        this.roleModal = false;
+        this.errorModal.show = true;
+        this.errorModal.message = 'Failed to add role';
+      },
+    },
   }
 </script>
