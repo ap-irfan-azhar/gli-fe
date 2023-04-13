@@ -129,6 +129,15 @@ export default {
   }),
   mounted() {
     this.getUserRoles()
+    console.log(this.user)
+    if (this.isEdit) {
+      this.name = this.user.name
+      this.gender = this.user.gender
+      this.dob = this.user.dob
+      this.address = this.user.address
+      this.email = this.user.email
+      this.userRoleId = this.user.userRole.id
+    }
   },
   methods: {
     submit() {
@@ -140,7 +149,20 @@ export default {
         email: this.email,
         userRoleId: this.userRoleId
       }
-      console.log(payload)
+      
+      if (this.isEdit) {
+        axios.put(`${API_URL}/user/${this.user.id}`, payload)
+          .then(() => {
+            this.clearInput()
+            this.$emit('success')
+          })
+          .catch(() => {
+            this.$emit('error')
+          }
+        )
+        return
+      }
+
       axios.post(`${API_URL}/user/`, payload)
         .then(() => {
           this.clearInput()

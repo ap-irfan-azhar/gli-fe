@@ -63,7 +63,23 @@
       :items="users"
       disable-initial-sort
       hide-default-footer
-    />
+    >
+      <template v-slot:[`item.actions`]="{ item }">
+        <v-icon
+        small
+        class="mr-2"
+        @click="editItem(item)"
+      >
+        mdi-pencil
+      </v-icon>
+      <v-icon
+        small
+        @click="deleteItem(item)"
+      >
+        mdi-delete
+      </v-icon>
+      </template>
+    </v-data-table>
     <v-row class="mt-5">
       <v-col cols="3" sm="6" md="4">
         <v-select
@@ -87,7 +103,7 @@
       max-width="500px"
     >
       <SuccessModal
-        message="User added successfully"
+        :message="successModal.message"
         @close="successModal.show = false"        
       />
     </v-dialog>
@@ -96,9 +112,25 @@
       max-width="500px"
     >
       <ErrorModal
-        message="Something went wrong"
+        :message="errorModal.message"
         @close="errorModal.show = false"
       />
+    </v-dialog>
+    <v-dialog 
+      v-if="editModal"
+      v-model="editModal"
+      max-width="500px"
+    >
+      <v-container 
+        style="background-color: white !important;"
+      >
+        <UserForm
+          :isEdit="true"
+          :user="selectedUser"
+          @success="onSuccesEdit"
+          @error="onErrorEdit"
+        />
+      </v-container>
     </v-dialog>
   </v-container>
 </template>
@@ -199,7 +231,7 @@
         },
         {
           text: 'Date of Birth',
-          value: 'dob',
+          value: 'formattedDob',
           sortable: false
         },
         {
@@ -219,7 +251,7 @@
         },
         {
           text: 'Action',
-          value: 'action',
+          value: 'actions',
           sortable: false
         }
       ],
@@ -248,7 +280,9 @@
       errorModal: {
         show: false,
         message: ''
-      }
+      },
+      editModal: false,
+      selectedUser: {}
     }),
     mounted() {
       this.getUsers();
@@ -282,7 +316,8 @@
             this.users = response.data.content.map((user) => {
               return {
                 ...user,
-                dob: this.formatDate(user.dob),
+                formattedDob: this.formatDate(user.dob),
+                dob: this.rawDob(user.dob),
                 no: response.data.content.indexOf(user) + 1 + (this.page - 1) * this.rowsPerPage
               }
             })
@@ -297,6 +332,19 @@
         this.sortBy = '';
         this.sortDirection = '';
         this.search = '';
+      },
+      rawDob(date) {
+        let d = new Date(date);
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        let year = d.getFullYear();
+
+        if (month.length < 2) 
+          month = '0' + month;
+        if (day.length < 2) 
+          day = '0' + day;
+
+        return [year, month, day].join('-');
       },
       formatDate(date) {
         let d = new Date(date);
@@ -314,11 +362,28 @@
       onSuccess() {
         this.dialog = false
         this.successModal.show = true;
+        this.successModal.message = 'User has been added successfully';
         this.getUsers();
       },
       onError() {
         this.dialog = false
         this.errorModal.show = true;
+        this.errorModal.message = 'Failed to add user';
+      },
+      editItem(user) {
+        this.selectedUser = user;
+        this.editModal = true;
+      },
+      onSuccesEdit() {
+        this.editModal = false;
+        this.successModal.show = true;
+        this.successModal.message = 'User has been edited successfully';
+        this.getUsers();
+      },
+      onErrorEdit() {
+        this.editModal = false;
+        this.errorModal.show = true;
+        this.errorModal.message = 'Failed to edit user';
       },
     }
   }
