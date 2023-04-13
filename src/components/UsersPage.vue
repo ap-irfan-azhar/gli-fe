@@ -1,0 +1,257 @@
+<template>
+  <v-container>
+    <H1> List of Users </H1>
+    <v-row>
+      <v-col cols="3" sm="6" md="4">
+        <v-text-field
+          v-model="search"
+          append-icon="mdi-magnify"
+          label="Search"
+          single-line
+          hide-details
+        ></v-text-field>
+      </v-col>
+      <v-col cols="3" sm="6" md="4">
+        <v-select
+          v-model="sortBy"
+          :items="sortByList"
+          label="Sort by"
+        ></v-select>
+      </v-col>
+      <v-col cols="3" sm="6" md="4">
+        <v-select
+          v-model="sortDirection"
+          :items="sortDirectionList"
+          label="Sort Direction"
+        ></v-select>
+      </v-col>
+      <v-col cols="1">
+        <v-btn
+          color="primary"
+          class="mr-4"
+          @click="clearFilter"
+        >
+          Clear Filter
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-data-table
+      :headers="tableHeaders"
+      :items="users"
+      disable-initial-sort
+      hide-default-footer
+    />
+    <v-row class="mt-5">
+      <v-col cols="3" sm="6" md="4">
+        <v-select
+          v-model="rowsPerPage"
+          :items="rowsPerPageList"
+          label="Rows per page"
+        ></v-select>
+      </v-col>
+      <v-col cols="3" sm="6" md="4">
+        <v-pagination
+          v-model="page"
+          :length="totalPage"
+          circle
+          color="primary"
+          @input="getUsers"
+        />
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+<script>
+  import axios from 'axios';
+  import { API_URL } from '../utils/const'
+  export default {
+    name: 'UsersPage',
+
+    data: () => ({
+      users: [
+        {
+          "id": 1,
+          "name": "string",
+          "gender": "MALE",
+          "dob": "2023-04-11T14:51:26.772+00:00",
+          "address": "string",
+          "email": "string",
+          "userRole": {
+            "id": 1,
+            "name": "QA"
+          }
+        },
+        {
+          "id": 2,
+          "name": "string15",
+          "gender": "MALE",
+          "dob": "2023-04-11T14:51:26.772+00:00",
+          "address": "string",
+          "email": "string",
+          "userRole": {
+            "id": 1,
+            "name": "QA"
+          }
+        },
+        {
+          "id": 8,
+          "name": "azhar1",
+          "gender": "MALE",
+          "dob": "2000-09-18T00:00:00.000+00:00",
+          "address": "sleman",
+          "email": "azharmail.com",
+          "userRole": {
+            "id": 5,
+            "name": "BACKEND"
+          }
+        },
+        {
+          "id": 11,
+          "name": "string1",
+          "gender": "MALE",
+          "dob": "2023-04-11T14:34:33.395+00:00",
+          "address": "string",
+          "email": "string",
+          "userRole": {
+            "id": 1,
+            "name": "QA"
+          }
+        },
+        {
+          "id": 12,
+          "name": "string2",
+          "gender": "MALE",
+          "dob": "2023-04-11T14:34:33.395+00:00",
+          "address": "string",
+          "email": "string",
+          "userRole": {
+            "id": 1,
+            "name": "QA"
+          }
+        }
+      ],
+      tableHeaders: [
+        {
+          text: 'No',
+          value: 'no',
+          sortable: false
+        },
+        {
+          text: 'Name',
+          value: 'name',
+          sortable: false
+        },
+        {
+          text: 'Gender',
+          value: 'gender',
+          sortable: false
+        },
+        {
+          text: 'Date of Birth',
+          value: 'dob',
+          sortable: false
+        },
+        {
+          text: 'Address',
+          value: 'address',
+          sortable: false
+        },
+        {
+          text: 'Email',
+          value: 'email',
+          sortable: false
+        },
+        {
+          text: 'Role',
+          value: 'userRole.name',
+          sortable: false
+        },
+        {
+          text: 'Action',
+          value: 'action',
+          sortable: false
+        }
+      ],
+      sortByList: [
+        { text: "Name", value: "name"},
+        { text: "date of birth", value: "dob"},
+        { text: "address", value: "address"},
+        { text: "email", value: "email"}
+      ],
+      sortDirectionList: [
+        "ASC", "DESC"
+      ],
+      sortBy: '',
+      sortDirection: '',
+      gender: ["MALE", "FEMALE"],
+      rowsPerPageList: [5, 10, 20, 30],
+      search: '',
+      page: 1,
+      rowsPerPage: 10,
+      totalPage: 0,
+    }),
+    mounted() {
+      this.getUsers();
+    },
+    watch: {
+      sortBy: function() {
+        this.getUsers();
+      },
+      sortDirection: function() {
+        this.getUsers();
+      },
+      search: function() {
+        this.page = 1;
+        this.getUsers();
+      },
+      rowsPerPage: function() {
+        this.page = 1;
+        this.getUsers();
+      }
+    },
+    methods: {
+      getUsers() {
+        axios.get(API_URL 
+          + '/user/?orderBy=' + this.sortBy 
+          + '&direction=' + this.sortDirection 
+          + '&search=' + this.search
+          + '&page=' + this.page
+          + '&size=' + this.rowsPerPage
+          )
+          .then(response => {
+            this.users = response.data.content.map((user) => {
+              return {
+                ...user,
+                dob: this.formatDate(user.dob),
+                no: response.data.content.indexOf(user) + 1
+              }
+            })
+            this.totalPage = response.data.totalPages;
+            console.log(response.data.content)
+          })
+          .catch(error => {
+            console.log(error);
+          })
+      },
+      clearFilter() {
+        this.sortBy = '';
+        this.sortDirection = '';
+        this.search = '';
+      },
+      formatDate(date) {
+        let d = new Date(date);
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        let year = d.getFullYear();
+
+        if (month.length < 2) 
+          month = '0' + month;
+        if (day.length < 2) 
+          day = '0' + day;
+
+        return [day, month, year].join('-');
+      }
+    }
+  }
+</script>
