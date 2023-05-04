@@ -25,7 +25,7 @@ path: /
 1. install nodejs
 2. install yarn
 3. install dependencies: `yarn install`
-4. run project: `yarn start`
+4. run project: `yarn serve`
 5. open browser: `http://localhost:8080`
 
 ## how to build project
