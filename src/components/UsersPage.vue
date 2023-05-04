@@ -294,7 +294,8 @@
         { text: "Name", value: "name"},
         { text: "date of birth", value: "dob"},
         { text: "address", value: "address"},
-        { text: "email", value: "email"}
+        { text: "email", value: "email"},
+        { text: "registration date", value: "id"},
       ],
       sortDirectionList: [
         "ASC", "DESC"
