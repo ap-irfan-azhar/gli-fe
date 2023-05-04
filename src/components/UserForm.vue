@@ -33,7 +33,12 @@
             required
           ></v-text-field>
         </template>
-        <v-date-picker v-model="dob" no-title scrollable>
+        <v-date-picker 
+          v-model="dob" 
+          no-title 
+          scrollable
+          :max="today"
+        >
           <v-spacer></v-spacer>
           <v-btn
             text
@@ -125,7 +130,8 @@ export default {
         const dob = new Date(value)
         return dob < today || 'Date of birth must be less than today'
       },
-    }
+    },
+    today: new Date().toISOString().substr(0, 10),
   }),
   mounted() {
     this.getUserRoles()
